@@ -9,9 +9,6 @@ static bool debugLevel = false; // Default debug level is low (false)
 static const int LEDPIN = 26;   // LED pin; adjust as necessary
 static const int MENB   = 5;    // Pin to enable the potentiostat
 
-// Create a global instance of the potentiostat driver.
-static LMP91000 pStat;         // Assumes LMP91000 has a default constructor
-
 //--------------------------------------------------------//
 // Internal (static) initialization functions
 //--------------------------------------------------------//
@@ -33,18 +30,6 @@ static void initLEDs() {
     digitalWrite(LEDPIN, LOW);  // start with LED off
     if (debugLevel) {
         Serial.println("LEDs initialized.");
-    }
-}
-
-// Initialize the potentiostat (for example, LMP91000).
-static void initPotentiostat() {
-    pStat.setMENB(MENB);   // Configure the enable pin
-    delay(50);
-    pStat.standby();       // Place the device in standby or reset state
-    delay(50);
-    pStat.setGain(0);      // Set default gain (adjust as needed)
-    if (debugLevel) {
-        Serial.println("Potentiostat initialized.");
     }
 }
 
@@ -77,9 +62,6 @@ void initHardware() {
 
     // Initialize LED(s)
     initLEDs();
-
-    // Initialize the potentiostat
-    initPotentiostat();
 
     if (debugLevel) {
         Serial.println("All hardware initialized.");

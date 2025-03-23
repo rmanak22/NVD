@@ -1,37 +1,47 @@
 #include <Arduino.h>
-#include "device/device.h"
-
-// We'll use a simple timer to trigger our LED functions every 1 second.
-unsigned long previousMillis = 0;
-const unsigned long interval = 1000; // 1 second
-
-// For demonstration, we'll alternate between toggling the LED and setting it explicitly.
-bool toggleMode = true;
+#include "device/device.h"   // Contains initHardware, toggleLED, setLED, etc.
+#include "device/pstat.h"    // Contains pstatInit, runSWV, data logging and helper functions
 
 void setup() {
+    // Initialize device hardware
     initHardware();
-    Serial.println("Setup complete. Entering main loop...");
+
+    // Optionally enable pstat debug output
+    setPstatDebug(true);
+
+    Serial.println("System initialized. Beginning main cycle...");
 }
 
 void loop() {
-    unsigned long currentMillis = millis();
+    // --- Step 1: Clear Data Memory ---
+    Serial.println("Clearing data memory...");
+    clearVoltammogramFile();
+    clearVoltammogramArrays();
+    Serial.println("Data memory cleared.");
 
-    // Check if 1 second has elapsed
-    if (currentMillis - previousMillis >= interval) {
-        previousMillis = currentMillis;
+    // --- Step 2: Run SWV Sweep ---
+    Serial.println("Starting SWV sweep...");
 
-        if (toggleMode) {
-            // Call the toggle function
-            toggleLED();
-            Serial.println("Test");
-        }
-        else {
-            // Call the setLED function to turn the LED ON (change to false to turn it off)
-            setLED(true);
-        }
+    // Print current pstat settings
+    Serial.print("Pstat Gain: ");
+    Serial.println(getPstatGain());
+    Serial.print("Pstat Bias: ");
+    Serial.println(getPstatBias());
+    Serial.print("ADC Averages: ");
+    Serial.println(getAdcAverages());
 
-        // For demonstration, alternate mode each second.
-        toggleMode = !toggleMode;
-    }
+    // Print SWV sweep settings (example values)
+    Serial.println("SWV Settings: Gain=7, StartV=-200 mV, EndV=200 mV, PulseAmp=20 mV, StepV=5 mV, Freq=10 Hz, SetToZero=true");
 
+    runSWV(7, -200, 200, 20, 5, 10.0, true);
+    Serial.println("SWV sweep complete.");
+
+    // --- Step 3: Send Data Over Serial ---
+    Serial.println("Sending logged data over Serial...");
+    readFileAndSendOverSerial();
+    Serial.println("\nData sent over Serial.");
+
+    // --- End of Cycle ---
+    Serial.println("Cycle complete. Waiting 5 seconds before next cycle...");
+    delay(5000);
 }
