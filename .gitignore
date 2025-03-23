@@ -1,5 +1,15 @@
 .DS_store
 
+## FW
+FW/.pio
+FW/.vscode/.browse.c_cpp.db*
+FW/.vscode/c_cpp_properties.json
+FW/.vscode/launch.json
+FW/.vscode/
+
+# Python env
+Calibration/nvd/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
