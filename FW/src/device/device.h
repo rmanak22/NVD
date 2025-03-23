@@ -10,8 +10,10 @@ void initHardware();
 void toggleLED();
 void setLED(bool on);
 
-// 
+// Debug level control function
 void setDebugLevel(bool on);
 
+// New helper function to get free heap memory (RAM)
+unsigned long getFreeHeap();
 
 #endif // DEVICE_H

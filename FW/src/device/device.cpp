@@ -88,8 +88,12 @@ void setLED(bool on) {
 // Function to set the debug level. When debug is enabled, internal messages are printed.
 void setDebugLevel(bool on) {
     debugLevel = on;
-    // If we enable debugging and Serial is available, print confirmation.
     if (debugLevel) {
         Serial.println("Debug level set to HIGH.");
     }
+}
+
+// New public helper function that returns free heap memory.
+unsigned long getFreeHeap() {
+    return ESP.getFreeHeap();
 }
