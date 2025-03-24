@@ -39,19 +39,24 @@ static void initLEDs() {
 
 // Initialize WIFI AP.
 static void initWiFiAP() {
-    // Print a message indicating that WiFi AP is being set up.
-    if (debugLevel) {
-        Serial.println("Setting up WiFi Access Point...");
-    }
-    // Set the ESP32 into Access Point mode and start the AP with SSID and password.
+    // Set a fixed IP configuration for the ESP32 AP.
+    IPAddress local_IP(192, 168, 4, 1);
+    IPAddress gateway(192, 168, 4, 1);
+    IPAddress subnet(255, 255, 255, 0);
+    WiFi.softAPConfig(local_IP, gateway, subnet);
+
+    // Set the ESP32 into Access Point mode and start the AP.
+    WiFi.mode(WIFI_AP);
     WiFi.softAP("metallyze_sensor", "safewater");
-    // Allow some time for the AP to be established.
-    delay(500);
+    delay(500); // Give the AP time to initialize
+
     if (debugLevel) {
+        Serial.println("WiFi Access Point started successfully.");
         Serial.print("AP IP address: ");
         Serial.println(WiFi.softAPIP());
     }
 }
+
 
 //--------------------------------------------------------//
 // Public functions (as declared in device.h)

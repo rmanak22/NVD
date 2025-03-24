@@ -1,18 +1,20 @@
 #include <Arduino.h>
 #include "device/device.h"   // Contains initHardware, toggleLED, setLED, etc.
 #include "device/pstat.h"    // Contains pstatInit, runSWV, data logging and helper functions
+#include "network/comms.h"  // Contains  sendCSVData
 
 void setup() {
     // Initialize device hardware
     initHardware();
 
     // Optionally enable pstat debug output
-    setPstatDebug(true);
+    setPstatDebug(false);
 
     Serial.println("System initialized. Beginning main cycle...");
 }
 
-void loop() {
+void loop()
+{
     // --- Step 1: Clear Data Memory ---
     Serial.println("Clearing data memory...");
     clearVoltammogramFile();
@@ -41,10 +43,24 @@ void loop() {
     runSWV(7, -200, 200, 20, 5, 10.0, true);
     Serial.println("SWV sweep complete.");
 
-    // --- Step 4: Send Data Over Serial ---
+    // Write the logged data to CSV file.
+    Serial.println("Writing logged data to file...");
+    writeVoltammogramToFile();
+    Serial.println("Data written to /data.csv.");
+
+    // Now send the data over Serial.
     Serial.println("Sending logged data over Serial...");
     readFileAndSendOverSerial();
     Serial.println("\nData sent over Serial.");
+
+    // And then send it via HTTP.
+    Serial.println("Sending CSV data to backend...");
+    const char* backendURL = "http://192.168.4.2:80/upload";
+    if (sendCSVData(backendURL)) {
+        Serial.println("CSV data sent successfully.");
+    } else {
+        Serial.println("Failed to send CSV data.");
+    }
 
     // --- Step 5: Log Memory Usage ---
     freeHeap = getFreeHeap();
