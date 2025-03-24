@@ -2,9 +2,13 @@
 #include <Wire.h>
 #include <SPIFFS.h>
 #include "LMP91000.h"  // Include your LMP91000 driver header
+#include <WiFi.h>
+#include "soc/soc.h"          // Required for WRITE_PERI_REG
+#include "soc/rtc_cntl_reg.h" // Required for RTC_CNTL_BROWN_OUT_REG
+
 
 // Define static variables and constants local to this module.
-static bool debugLevel = false; // Default debug level is low (false)
+static bool debugLevel = true; // Default debug level is low (false)
 
 static const int LEDPIN = 26;   // LED pin; adjust as necessary
 static const int MENB   = 5;    // Pin to enable the potentiostat
@@ -33,11 +37,33 @@ static void initLEDs() {
     }
 }
 
+// Initialize WIFI AP.
+static void initWiFiAP() {
+    // Print a message indicating that WiFi AP is being set up.
+    if (debugLevel) {
+        Serial.println("Setting up WiFi Access Point...");
+    }
+    // Set the ESP32 into Access Point mode and start the AP with SSID and password.
+    WiFi.softAP("metallyze_sensor", "safewater");
+    // Allow some time for the AP to be established.
+    delay(500);
+    if (debugLevel) {
+        Serial.print("AP IP address: ");
+        Serial.println(WiFi.softAPIP());
+    }
+}
+
 //--------------------------------------------------------//
 // Public functions (as declared in device.h)
 //--------------------------------------------------------//
 
 void initHardware() {
+    // Disable brownout detector to avoid resets during WiFi startup.
+    WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
+    if (debugLevel) {
+        Serial.println("Brownout detector disabled.");
+    }
+
     initUART();
     if (debugLevel) {
         Serial.println("Starting hardware initialization...");
@@ -62,6 +88,9 @@ void initHardware() {
 
     // Initialize LED(s)
     initLEDs();
+
+    // Initialize WiFi in AP mode.
+    initWiFiAP();
 
     if (debugLevel) {
         Serial.println("All hardware initialized.");
