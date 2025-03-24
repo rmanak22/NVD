@@ -22,8 +22,9 @@ bool sendCSVData(const char* serverURL) {
         payload += char(file.read());
     }
     file.close();
-    Serial.print("Payload to Send:");
-    Serial.println(payload);
+
+    // Serial.print("Payload to Send:");
+    // Serial.println(payload);
 
     HTTPClient http;
     http.begin(serverURL);
