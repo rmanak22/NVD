@@ -383,6 +383,12 @@ int getAdcAverages() {
 
 // Renamed from initLMP to pstatInit to avoid conflict with the library.
 void pstatInit(uint8_t newGain) {
+    pStat.setMENB(MENB);     // Enable the LMP91000 via the MENB pin.
+    delay(50);
+    pStat.standby();         // Put the device into standby mode.
+    delay(50);
+
+    // Continue with the rest of the initialization.
     pStat.disableFET();
     pStat.setGain(newGain);
     pStat.setRLoad(0);
@@ -392,6 +398,7 @@ void pstatInit(uint8_t newGain) {
     pStat.setBias(0);
     pStat.setPosBias();
     setOutputsToZero();
+
     LMPgainGLOBAL = newGain;
     if (debugLevel) {
         Serial.print("pstatInit: pstat initialized with gain ");
