@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Metallyze Dashboard</title>
+  <!-- Chart.js (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.8.0/dist/chart.min.js"></script>
+  <style>
+    /* ==== Base Styles ==== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #041F45 0%, #062C57 100%);
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ==== Header / Navbar ==== */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      background-color: rgba(0, 0, 0, 0.3);
+    }
+    /* Logo Container */
+    .logo-container {
+      display: flex;
+      align-items: center;
+    }
+    .logo-image {
+      height: 40px;
+    }
+
+    /* Navigation Tabs */
+    .navbar {
+      flex: 1;
+      margin: 0 2rem;
+    }
+    .navbar ul {
+      list-style: none;
+      display: flex;
+      gap: 2rem;
+    }
+    .navbar li {
+      cursor: pointer;
+      opacity: 0.8;
+      transition: opacity 0.2s ease;
+    }
+    .navbar li:hover {
+      opacity: 1.0;
+    }
+    .navbar li.active {
+      font-weight: bold;
+      text-decoration: underline;
+      opacity: 1.0;
+    }
+
+    /* Sweep Button */
+    #sweepButton {
+      background: #00d4ff;
+      color: #041F45;
+      border: none;
+      padding: 0.8rem 1.2rem;
+      border-radius: 4px;
+      font-size: 1rem;
+      transition: all 0.2s ease-in-out;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    #sweepButton:hover {
+      transform: scale(1.05);
+      background: #00a3c9;
+    }
+
+    /* ==== Main Content ==== */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .top-section {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Concentration Display */
+    .sensor-value-container {
+      flex: 1;
+      text-align: right;
+    }
+    .sensor-value {
+      font-size: 2.5rem;
+      font-weight: bold;
+      transition: color 0.3s ease, transform 0.3s ease;
+    }
+    .sensor-value.updated {
+      color: #ffca28;
+      transform: scale(1.05);
+    }
+
+    /* ==== Charts Container ==== */
+    .charts-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      margin-bottom: 2rem;
+      justify-content: space-around;
+    }
+    .chart-wrapper {
+      flex: 1 1 300px;
+      min-width: 300px;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 1rem;
+      position: relative;
+      margin: 0 auto;
+    }
+    .chart-wrapper canvas {
+      width: 100% !important;
+      max-height: 350px;
+      margin: 0 auto;
+    }
+
+    /* Map Container */
+    #mapContainer {
+      flex: 1 1 300px;
+      min-width: 300px;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 1rem;
+      margin: 0 auto 2rem auto; /* add extra bottom margin */
+      text-align: center;
+    }
+    #mapContainer img {
+      width: 100%;
+      max-height: 350px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+
+    /* ==== Footer ==== */
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background-color: rgba(0,0,0,0.2);
+      color: #dddddd;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header / Navbar -->
+  <header>
+    <!-- Logo on the left -->
+    <div class="logo-container">
+      <img src="metallyzelogo.png" alt="Metallyze Logo" class="logo-image" />
+    </div>
+
+    <!-- Navigation Tabs in the center -->
+    <nav class="navbar">
+      <ul>
+        <li class="active">Current Data</li>
+        <li>Facility Selection</li>
+        <li>View Historical Data</li>
+        <li>View Map of Units Across Facility</li>
+        <li>Alerts & Notifications</li>
+      </ul>
+    </nav>
+
+    <!-- Button on the right -->
+    <button id="sweepButton">Generate More Data</button>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <!-- Top Section: Current Concentration Display -->
+    <div class="top-section">
+      <h2>Real-Time Metal Sensor Dashboard</h2>
+      <div class="sensor-value-container">
+        <div id="currentConcentration" class="sensor-value" title="Current concentration reading">
+          --.-
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="charts-container">
+      <!-- Concentration vs Time Chart -->
+      <div class="chart-wrapper" title="Concentration vs Time">
+        <h3>Concentration vs Time</h3>
+        <canvas id="concentrationChart"></canvas>
+      </div>
+      <!-- Current vs Voltage Chart -->
+      <div class="chart-wrapper" title="Current vs Voltage">
+        <h3>Current vs Voltage</h3>
+        <canvas id="ivChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Map Section -->
+    <div id="mapContainer">
+      <h3>Sensor Location</h3>
+      <img src="ubc_map_pin.png" alt="Map showing sensor location">
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>Metallyze &copy; 2025 - Dashboard</p>
+  </footer>
+
+  <!-- JavaScript -->
+  <script>
+    // Global variables for chart data (initially empty)
+    let concentrationHistory = [];
+    let timeHistory = [];
+    let latestVoltage = [];
+    let latestCurrent = [];
+    let currentConcentration = 0;
+
+    // Create Concentration vs Time chart (line chart)
+    const ctxConcentration = document.getElementById('concentrationChart').getContext('2d');
+    const concentrationChart = new Chart(ctxConcentration, {
+      type: 'line',
+      data: {
+        labels: timeHistory, // We'll store hour:minute strings in here
+        datasets: [{
+          label: 'Concentration (ppb)',
+          data: concentrationHistory,
+          borderColor: 'yellow',
+          backgroundColor: 'rgba(255, 255, 0, 0.2)',
+          pointBackgroundColor: 'yellow',
+          pointRadius: 3,
+          borderWidth: 2,
+          tension: 0.1,
+          fill: true,
+          spanGaps: true
+        }]
+      },
+      options: {
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Time (HH:MM)'
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Concentration (ppb)'
+            }
+          }
+        }
+      }
+    });
+
+    // Create Current vs Voltage chart (scatter plot)
+    const ctxIV = document.getElementById('ivChart').getContext('2d');
+    const ivChart = new Chart(ctxIV, {
+      type: 'scatter',
+      data: {
+        datasets: [{
+          label: 'Current vs Voltage',
+          data: [], // Expecting objects of the form {x: voltage, y: current}
+          pointBackgroundColor: 'yellow',
+          pointRadius: 3
+        }]
+      },
+      options: {
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Voltage (V)'
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Current (A)'
+            }
+          }
+        }
+      }
+    });
+
+    // Convert raw millisecond timestamps into HH:MM strings
+    function formatTime(timestamp) {
+      const dateObj = new Date(timestamp);
+      const hours = dateObj.getHours().toString().padStart(2, '0');
+      const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+      return `${hours}:${minutes}`;
+    }
+
+    // Function to update the dashboard data from the backend
+    async function fetchData() {
+      try {
+        const response = await fetch('/data');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+
+        // Update data variables from backend response
+        currentConcentration = data.current_concentration;
+        const rawTimestamps = data.time_history;   // keep the raw timestamps
+        concentrationHistory = data.concentration_history;
+        latestVoltage = data.latest_voltage;
+        latestCurrent = data.latest_current;
+
+        // Convert timestamps to HH:MM
+        timeHistory = rawTimestamps.map(ts => formatTime(ts));
+
+        // If there's only one concentration/time point, insert placeholders
+        // so that the single data point is centered on the chart.
+        if (timeHistory.length === 1) {
+          timeHistory = ["", timeHistory[0], ""];
+          concentrationHistory = [null, concentrationHistory[0], null];
+        }
+
+        // Update the concentration display
+        const concElem = document.getElementById('currentConcentration');
+        concElem.textContent = currentConcentration.toFixed(2);
+        concElem.classList.add('updated');
+        setTimeout(() => {
+          concElem.classList.remove('updated');
+        }, 300);
+
+        // Update Concentration vs Time chart
+        concentrationChart.data.labels = timeHistory;
+        concentrationChart.data.datasets[0].data = concentrationHistory;
+        concentrationChart.update();
+
+        // Prepare data for Current vs Voltage chart (scatter plot)
+        const ivData = latestVoltage.map((v, i) => ({ x: v, y: latestCurrent[i] }));
+        ivChart.data.datasets[0].data = ivData;
+        ivChart.update();
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    }
+
+    // Button click: disable button, wait 10 seconds, then fetch and update data.
+    document.getElementById('sweepButton').addEventListener('click', () => {
+      const btn = document.getElementById('sweepButton');
+      btn.disabled = true;
+      btn.textContent = "Generating data...";
+      setTimeout(() => {
+        fetchData();
+        btn.disabled = false;
+        btn.textContent = "Generate More Data";
+      }, 10000);
+    });
+  </script>
+</body>
+</html>
