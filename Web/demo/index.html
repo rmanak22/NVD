@@ -108,9 +108,14 @@
       font-weight: bold;
       transition: color 0.3s ease, transform 0.3s ease;
     }
+    /* "Highlight" effect on update */
     .sensor-value.updated {
       color: #ffca28;
       transform: scale(1.05);
+    }
+    /* Turn the reading red if over 2000 */
+    .sensor-value.exceeded {
+      color: red !important;
     }
 
     /* ==== Cards for Dropdown + Service Box ==== */
@@ -165,7 +170,7 @@
       background-color: rgba(255, 255, 255, 0.1);
       border-radius: 8px;
       padding: 1rem;
-      margin: 0 auto 2rem auto; /* extra bottom margin */
+      margin: 0 auto 2rem auto;
       text-align: center;
     }
     #mapContainer img {
@@ -213,6 +218,7 @@
     <div class="top-section">
       <h2>Real-Time Metal Sensor Dashboard</h2>
       <div class="sensor-value-container">
+        <!-- Big reading with "ppb" appended -->
         <div id="currentConcentration" class="sensor-value" title="Current concentration reading">
           --.-
         </div>
@@ -271,19 +277,26 @@
 
   <!-- JavaScript -->
   <script>
-    // Global variables for chart data (initially empty)
+    // Track how many times the button has been pressed
+    let buttonPressCount = 0;
+
+    // Global arrays for the Concentration vs Time chart
     let concentrationHistory = [];
     let timeHistory = [];
+
+    // For the Current vs Voltage chart
     let latestVoltage = [];
     let latestCurrent = [];
+
+    // Current concentration displayed
     let currentConcentration = 0;
 
-    // Create Concentration vs Time chart (line chart)
+    // Chart objects
     const ctxConcentration = document.getElementById('concentrationChart').getContext('2d');
     const concentrationChart = new Chart(ctxConcentration, {
       type: 'line',
       data: {
-        labels: timeHistory, // We'll store hour:minute strings here
+        labels: timeHistory,
         datasets: [{
           label: 'Concentration (ppb)',
           data: concentrationHistory,
@@ -306,6 +319,8 @@
             }
           },
           y: {
+            min: 0,
+            max: 3000,
             title: {
               display: true,
               text: 'Concentration (ppb)'
@@ -315,14 +330,13 @@
       }
     });
 
-    // Create Current vs Voltage chart (scatter plot)
     const ctxIV = document.getElementById('ivChart').getContext('2d');
     const ivChart = new Chart(ctxIV, {
       type: 'scatter',
       data: {
         datasets: [{
           label: 'Current vs Voltage',
-          data: [], // Expecting objects of the form {x: voltage, y: current}
+          data: [],
           pointBackgroundColor: 'yellow',
           pointRadius: 3
         }]
@@ -345,53 +359,74 @@
       }
     });
 
-    // Convert raw millisecond timestamps into HH:MM strings
-    function formatTime(timestamp) {
-      const dateObj = new Date(timestamp);
+    // Convert milliseconds to "HH:MM"
+    function formatTime(ms) {
+      const dateObj = new Date(ms);
       const hours = dateObj.getHours().toString().padStart(2, '0');
       const minutes = dateObj.getMinutes().toString().padStart(2, '0');
       return `${hours}:${minutes}`;
     }
 
-    // Function to update the dashboard data from the backend
-    async function fetchData() {
+    /**
+     * Fetch data from either /data or /data2.
+     * If it's the second fetch, append new data to the concentration/time chart arrays.
+     */
+    async function fetchData(url) {
       try {
-        const response = await fetch('/data');
+        const response = await fetch(url);
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
         const data = await response.json();
 
-        // Update data variables from backend response
-        currentConcentration = data.current_concentration;
-        const rawTimestamps = data.time_history;   // keep the raw timestamps
-        concentrationHistory = data.concentration_history;
+        if (url === '/data') {
+          // First fetch: clear arrays and add one data point
+          currentConcentration = data.current_concentration;
+          concentrationHistory = [];
+          timeHistory = [];
+          concentrationHistory.push(data.concentration_history[0]);
+          timeHistory.push(formatTime(data.time_history[0]));
+        } else {
+          // Second fetch: append new data point
+          currentConcentration = data.current_concentration;
+          concentrationHistory.push(data.concentration_history[0]);
+          timeHistory.push(formatTime(data.time_history[0]));
+        }
+
+        // Update Current vs Voltage chart data (replace old data)
         latestVoltage = data.latest_voltage;
         latestCurrent = data.latest_current;
 
-        // Convert timestamps to HH:MM
-        timeHistory = rawTimestamps.map(ts => formatTime(ts));
-
-        // If there's only one concentration/time point, insert placeholders
-        if (timeHistory.length === 1) {
-          timeHistory = ["", timeHistory[0], ""];
-          concentrationHistory = [null, concentrationHistory[0], null];
-        }
-
-        // Update the concentration display
+        // Update the big concentration reading with "ppb"
         const concElem = document.getElementById('currentConcentration');
-        concElem.textContent = currentConcentration.toFixed(2);
+        concElem.textContent = currentConcentration.toFixed(2) + " ppb";
+
+        // Add "updated" effect briefly
         concElem.classList.add('updated');
         setTimeout(() => {
           concElem.classList.remove('updated');
         }, 300);
+
+        // If concentration > 2000, turn red and show alert
+        if (currentConcentration > 2000) {
+          concElem.classList.add('exceeded');
+          alert("WARNING LIMITS EXCEEDED -- MESSAGE SENT TO FACILITY MANAGER");
+        } else {
+          concElem.classList.remove('exceeded');
+        }
+
+        // Remove any placeholder values if more than one data point exists
+        if (concentrationHistory.length > 1) {
+          concentrationHistory = concentrationHistory.filter(val => val !== null);
+          timeHistory = timeHistory.filter(label => label !== "");
+        }
 
         // Update Concentration vs Time chart
         concentrationChart.data.labels = timeHistory;
         concentrationChart.data.datasets[0].data = concentrationHistory;
         concentrationChart.update();
 
-        // Prepare data for Current vs Voltage chart (scatter plot)
+        // Update Current vs Voltage chart
         const ivData = latestVoltage.map((v, i) => ({ x: v, y: latestCurrent[i] }));
         ivChart.data.datasets[0].data = ivData;
         ivChart.update();
@@ -400,16 +435,28 @@
       }
     }
 
-    // Button click: disable button, wait 10 seconds, then fetch and update data.
+    /**
+     * Button click handler:
+     * - On first press: wait 10 seconds, then fetch /data.
+     * - On second press: wait 10 seconds, then fetch /data2.
+     */
     document.getElementById('sweepButton').addEventListener('click', () => {
+      buttonPressCount++;
       const btn = document.getElementById('sweepButton');
       btn.disabled = true;
       btn.textContent = "Generating data...";
+
       setTimeout(() => {
-        fetchData();
+        if (buttonPressCount === 1) {
+          fetchData('/data');
+        } else if (buttonPressCount === 2) {
+          fetchData('/data2');
+        } else {
+          console.log("Button pressed more than twice; no further action.");
+        }
         btn.disabled = false;
         btn.textContent = "Generate More Data";
-      }, 10000);
+      }, 7000);
     });
   </script>
 </body>
