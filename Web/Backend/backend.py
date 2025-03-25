@@ -1,10 +1,12 @@
 from flask import Flask, request
+from flask_cors import CORS  # Import Flask-CORS
 import os
 from datetime import datetime
 import numpy as np
 import io
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
 # Global variables
 current_concentration = 0        # Latest metal concentration value
