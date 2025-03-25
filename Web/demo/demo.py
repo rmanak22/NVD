@@ -1,7 +1,11 @@
 from flask import Flask, jsonify, send_from_directory
 import time
 
-app = Flask(__name__, static_url_path='')
+# Instruct Flask to serve from the current directory (.)
+# at the root URL path (i.e., no /static prefix)
+app = Flask(__name__,
+            static_folder='.',       # Serve from current dir
+            static_url_path='')      # at the root URL
 
 @app.route('/')
 def index():
