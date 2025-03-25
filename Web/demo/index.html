@@ -113,6 +113,28 @@
       transform: scale(1.05);
     }
 
+    /* ==== Cards for Dropdown + Service Box ==== */
+    .cards-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      margin-bottom: 2rem;
+      justify-content: space-around;
+    }
+    .info-card {
+      flex: 1 1 300px;
+      min-width: 300px;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 1rem;
+      margin: 0 auto;
+    }
+    .info-card h3 {
+      margin-bottom: 0.5rem;
+      text-align: center;
+      color: #00d4ff;
+    }
+
     /* ==== Charts Container ==== */
     .charts-container {
       display: flex;
@@ -143,7 +165,7 @@
       background-color: rgba(255, 255, 255, 0.1);
       border-radius: 8px;
       padding: 1rem;
-      margin: 0 auto 2rem auto; /* add extra bottom margin */
+      margin: 0 auto 2rem auto; /* extra bottom margin */
       text-align: center;
     }
     #mapContainer img {
@@ -197,6 +219,29 @@
       </div>
     </div>
 
+    <!-- Cards Container (Dropdown + Service) -->
+    <div class="cards-container">
+      <!-- Metal Dropdown Card -->
+      <div class="info-card">
+        <h3>Metal to Detect</h3>
+        <label for="metalSelect" style="font-weight: bold;">Select Metal:</label>
+        <select id="metalSelect" style="margin-left: 0.5rem;">
+          <option value="copper" selected>Copper</option>
+          <option value="lead">Lead</option>
+          <option value="arsenic">Arsenic</option>
+          <option value="iron">Iron</option>
+          <option value="cadmium">Cadmium</option>
+        </select>
+      </div>
+
+      <!-- When to Service Card -->
+      <div class="info-card">
+        <h3>When to Service</h3>
+        <!-- Hardcoded service date -->
+        <p style="font-weight: bold;">Next Service : Tuesday May 29 2025</p>
+      </div>
+    </div>
+
     <!-- Charts Section -->
     <div class="charts-container">
       <!-- Concentration vs Time Chart -->
@@ -204,6 +249,7 @@
         <h3>Concentration vs Time</h3>
         <canvas id="concentrationChart"></canvas>
       </div>
+
       <!-- Current vs Voltage Chart -->
       <div class="chart-wrapper" title="Current vs Voltage">
         <h3>Current vs Voltage</h3>
@@ -237,7 +283,7 @@
     const concentrationChart = new Chart(ctxConcentration, {
       type: 'line',
       data: {
-        labels: timeHistory, // We'll store hour:minute strings in here
+        labels: timeHistory, // We'll store hour:minute strings here
         datasets: [{
           label: 'Concentration (ppb)',
           data: concentrationHistory,
@@ -327,7 +373,6 @@
         timeHistory = rawTimestamps.map(ts => formatTime(ts));
 
         // If there's only one concentration/time point, insert placeholders
-        // so that the single data point is centered on the chart.
         if (timeHistory.length === 1) {
           timeHistory = ["", timeHistory[0], ""];
           concentrationHistory = [null, concentrationHistory[0], null];
