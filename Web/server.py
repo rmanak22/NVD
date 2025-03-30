@@ -1,14 +1,14 @@
-from flask import Flask, request
-from flask_cors import CORS  # Import Flask-CORS
+from flask import Flask, render_template, request
+from flask_cors import CORS  # if cross-origin requests are needed
 import os
 from datetime import datetime
 import numpy as np
 import io
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app)  # Enable CORS if needed
 
-# Global variables
+# Backend Global Variables
 current_concentration = 0        # Latest metal concentration value
 concentration_history = []       # History of concentration values for plotting vs time
 time_history = []                # History of time values corresponding to the concentration
@@ -19,6 +19,12 @@ latest_current = []              # Current data from the latest CSV message
 line1_slope = 10.268
 line1_intercept = 1.1028
 
+# Serve the website (index.html must be in the "templates" folder)
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+# Endpoint to return current sensor data as JSON
 @app.route('/data', methods=['GET'])
 def data():
     global current_concentration, concentration_history, time_history, latest_voltage, latest_current
@@ -30,6 +36,7 @@ def data():
         "latest_current": latest_current
     }
 
+# Endpoint to receive CSV data from the ESP
 @app.route('/upload', methods=['POST'])
 def upload():
     global current_concentration, concentration_history, time_history, latest_voltage, latest_current
@@ -39,12 +46,12 @@ def upload():
     print(csv_data)
 
     # Parse CSV data (skip header row)
-    data = np.genfromtxt(io.StringIO(csv_data), delimiter=',', skip_header=1)
+    data_arr = np.genfromtxt(io.StringIO(csv_data), delimiter=',', skip_header=1)
 
     # Data columns: [Index, Current_Amps, Voltage_V, Time_ms]
-    current_values = data[:, 1]
-    voltage_values = data[:, 2]
-    time_values = data[:, 3]
+    current_values = data_arr[:, 1]
+    voltage_values = data_arr[:, 2]
+    time_values = data_arr[:, 3]
 
     # Update latest voltage and current arrays
     latest_current = current_values.tolist()
@@ -82,5 +89,5 @@ def upload():
     return "Data received", 200
 
 if __name__ == '__main__':
-    # Run the Flask webserver on all interfaces at port 80.
+    # Run the Flask app on all interfaces at port 80.
     app.run(host='0.0.0.0', port=80)
