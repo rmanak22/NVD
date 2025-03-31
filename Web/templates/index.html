@@ -29,13 +29,49 @@
       padding: 1rem 2rem;
       background-color: rgba(0, 0, 0, 0.3);
     }
-    .logo {
-      font-size: 1.5rem;
-      font-weight: bold;
-      cursor: default;
+    .logo-container {
+      display: flex;
+      align-items: center;
     }
-    .logo span {
-      color: #00d4ff;
+    .logo-image {
+      height: 40px;
+    }
+    .navbar {
+      flex: 1;
+      margin: 0 2rem;
+    }
+    .navbar ul {
+      list-style: none;
+      display: flex;
+      gap: 2rem;
+    }
+    .navbar li {
+      cursor: pointer;
+      opacity: 0.8;
+      transition: opacity 0.2s ease;
+    }
+    .navbar li:hover {
+      opacity: 1.0;
+    }
+    .navbar li.active {
+      font-weight: bold;
+      text-decoration: underline;
+      opacity: 1.0;
+    }
+    #sweepButton {
+      background: #00d4ff;
+      color: #041F45;
+      border: none;
+      padding: 0.8rem 1.2rem;
+      border-radius: 4px;
+      font-size: 1rem;
+      transition: all 0.2s ease-in-out;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    #sweepButton:hover {
+      transform: scale(1.05);
+      background: #00a3c9;
     }
     /* ==== Main Content ==== */
     main {
@@ -54,23 +90,6 @@
       gap: 1rem;
       margin-bottom: 1rem;
     }
-    /* Sweep Button */
-    #sweepButton {
-      background: #00d4ff;
-      color: #041F45;
-      border: none;
-      padding: 0.8rem 1.2rem;
-      border-radius: 4px;
-      font-size: 1rem;
-      transition: all 0.2s ease-in-out;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    #sweepButton:hover {
-      transform: scale(1.05);
-      background: #00a3c9;
-    }
-    /* Concentration Display */
     .sensor-value-container {
       flex: 1;
       text-align: right;
@@ -83,6 +102,27 @@
     .sensor-value.updated {
       color: #ffca28;
       transform: scale(1.05);
+    }
+    /* ==== Cards Container ==== */
+    .cards-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      margin-bottom: 2rem;
+      justify-content: space-around;
+    }
+    .info-card {
+      flex: 1 1 300px;
+      min-width: 300px;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 1rem;
+      margin: 0 auto;
+    }
+    .info-card h3 {
+      margin-bottom: 0.5rem;
+      text-align: center;
+      color: #00d4ff;
     }
     /* ==== Charts Container ==== */
     .charts-container {
@@ -106,6 +146,22 @@
       max-height: 350px;
       margin: 0 auto;
     }
+    /* ==== Map Container ==== */
+    #mapContainer {
+      flex: 1 1 300px;
+      min-width: 300px;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 1rem;
+      margin: 0 auto 2rem auto;
+      text-align: center;
+    }
+    #mapContainer img {
+      width: 100%;
+      max-height: 350px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
     /* ==== Footer ==== */
     footer {
       text-align: center;
@@ -118,9 +174,18 @@
 <body>
   <!-- Header / Navbar -->
   <header>
-    <div class="logo">
-      <span>Metallyze</span>
+    <div class="logo-container">
+      <img src="/static/metallyzelogo.png" alt="Metallyze Logo" class="logo-image" />
     </div>
+    <nav class="navbar">
+      <ul>
+        <li class="active">Current Data</li>
+        <li>Facility Selection</li>
+        <li>View Historical Data</li>
+        <li>View Map of Units Across Facility</li>
+        <li>Alerts & Notifications</li>
+      </ul>
+    </nav>
     <button id="sweepButton">Generate More Data</button>
   </header>
 
@@ -136,18 +201,41 @@
       </div>
     </div>
 
+    <!-- Cards Container (Dropdown + Service Info) -->
+    <div class="cards-container">
+      <div class="info-card">
+        <h3>Metal to Detect</h3>
+        <label for="metalSelect" style="font-weight: bold;">Select Metal:</label>
+        <select id="metalSelect" style="margin-left: 0.5rem;">
+          <option value="copper" selected>Copper</option>
+          <option value="lead">Lead</option>
+          <option value="arsenic">Arsenic</option>
+          <option value="iron">Iron</option>
+          <option value="cadmium">Cadmium</option>
+        </select>
+      </div>
+      <div class="info-card">
+        <h3>When to Service</h3>
+        <p style="font-weight: bold;">Next Service: Tuesday May 29 2025</p>
+      </div>
+    </div>
+
     <!-- Charts Section -->
     <div class="charts-container">
-      <!-- Concentration vs Time Chart -->
       <div class="chart-wrapper" title="Concentration vs Time">
         <h3>Concentration vs Time</h3>
         <canvas id="concentrationChart"></canvas>
       </div>
-      <!-- Current vs Voltage Chart -->
       <div class="chart-wrapper" title="Current vs Voltage">
         <h3>Current vs Voltage</h3>
         <canvas id="ivChart"></canvas>
       </div>
+    </div>
+
+    <!-- Map Section -->
+    <div id="mapContainer">
+      <h3>Sensor Location</h3>
+      <img src="/static/ubc_map_pin.png" alt="Map showing sensor location">
     </div>
   </main>
 
@@ -183,13 +271,12 @@
       },
       options: {
         scales: {
-        x: {
+          x: {
             title: {
               display: true,
-              text: 'Time (HH:MM:SS)'
+              text: 'Time (ms)'
             }
           },
-
           y: {
             title: {
               display: true,
