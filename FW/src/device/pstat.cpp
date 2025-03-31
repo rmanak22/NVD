@@ -160,8 +160,9 @@ static float biasAndSample(int16_t voltage, uint32_t rate) {
     float v2 = dacVout * 0.5;
 
     float current = 0;
+    // --- Modification here: always return microAmps ---
     if (LMPgainGLOBAL == 0)
-        current = (((v1 - v2) / 1000) / 1e6) * pow(10, 9);
+        current = (((v1 - v2) / 1000) / 1e6) * pow(10, 6);  // now in μA instead of nA
     else
         current = (((v1 - v2) / 1000) / TIA_GAIN[LMPgainGLOBAL - 1]) * pow(10, 6);
 
@@ -264,7 +265,8 @@ void writeVoltammogramToFile() {
         }
         return;
     }
-    file.println("Index,Current_Amps,Voltage_V,Time_ms");
+    // --- Modification: change header to indicate current is in microAmps ---
+    file.println("Index,Current_uA,Voltage_V,Time_ms");
     for (uint16_t i = 0; i < number_of_valid_points_in_volts_amps_array; i++) {
         file.print(i);
         file.print(",");

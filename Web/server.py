@@ -13,7 +13,7 @@ current_concentration = 0        # Latest metal concentration value
 concentration_history = []       # History of concentration values for plotting vs time
 time_history = []                # History of time values corresponding to the concentration
 latest_voltage = []              # Voltage data from the latest CSV message
-latest_current = []              # Current data from the latest CSV message
+latest_current = []              # Current data (in µA) from the latest CSV message
 
 # Interpolation line parameters
 line1_slope = 10.268
@@ -48,7 +48,7 @@ def upload():
     # Parse CSV data (skip header row)
     data_arr = np.genfromtxt(io.StringIO(csv_data), delimiter=',', skip_header=1)
 
-    # Data columns: [Index, Current_Amps, Voltage_V, Time_ms]
+    # Data columns: [Index, Current_uA, Voltage_V, Time_ms]
     current_values = data_arr[:, 1]
     voltage_values = data_arr[:, 2]
     time_values = data_arr[:, 3]
@@ -57,21 +57,17 @@ def upload():
     latest_current = current_values.tolist()
     latest_voltage = voltage_values.tolist()
 
-    # Find the top current value and its index
+    # Find the top current value and its index (current is now in µA)
     max_index = np.argmax(current_values)
     top_current = current_values[max_index]
-    print(f"Top current value (in Amps): {top_current}")
-
-    # Convert current from Amps to microamps (µA)
-    top_current_microamps = top_current * 1e6
-    print(f"Top current value (in µA): {top_current_microamps}")
+    print(f"Top current value (in µA): {top_current}")
 
     # Calculate the metal concentration using:
     # y (µA) = slope * concentration + intercept  =>  concentration = (y - intercept) / slope
-    current_concentration = (top_current_microamps - line1_intercept) / line1_slope
+    current_concentration = (top_current - line1_intercept) / line1_slope
     print(f"Calculated metal concentration: {current_concentration}")
 
-    # Use the current system time in HH:MM:SS format.
+    # Use the current system time in HH:MM:SS format for logging
     measurement_time = datetime.now().strftime("%H:%M:%S")
     # Append new data to the history arrays
     concentration_history.append(current_concentration)

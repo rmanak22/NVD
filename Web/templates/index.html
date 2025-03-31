@@ -274,13 +274,28 @@
           x: {
             title: {
               display: true,
-              text: 'Time (ms)'
+              text: 'Time (ms)',
+              color: '#ffffff'
+            },
+            ticks: {
+              color: '#ffffff'
             }
           },
           y: {
             title: {
               display: true,
-              text: 'Concentration'
+              text: 'Concentration',
+              color: '#ffffff'
+            },
+            ticks: {
+              color: '#ffffff'
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: {
+              color: '#ffffff'
             }
           }
         }
@@ -294,7 +309,7 @@
       data: {
         datasets: [{
           label: 'Current vs Voltage',
-          data: [], // Expecting objects of the form {x: voltage, y: current}
+          data: [], // Expecting objects of the form {x: voltage, y: current in µA}
           borderColor: '#00d4ff',
           backgroundColor: 'rgba(0,212,255,0.2)',
           pointRadius: 3,
@@ -305,13 +320,28 @@
           x: {
             title: {
               display: true,
-              text: 'Voltage (V)'
+              text: 'Voltage (V)',
+              color: '#ffffff'
+            },
+            ticks: {
+              color: '#ffffff'
             }
           },
           y: {
             title: {
               display: true,
-              text: 'Current (A)'
+              text: 'Current (µA)',
+              color: '#ffffff'
+            },
+            ticks: {
+              color: '#ffffff'
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: {
+              color: '#ffffff'
             }
           }
         }
