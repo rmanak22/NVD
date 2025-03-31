@@ -35,6 +35,13 @@ void setup() {
 void loop() {
     // Process any incoming HTTP requests.
     server.handleClient();
+    static unsigned long lastSweepTime = 0U;
+    static const unsigned long sweepInterval = 3500U;
+
+    // Set sweepRequested every 10 seconds without blocking.
+    if (millis() - lastSweepTime >= sweepInterval) {
+        sweepRequested = true;
+    }
 
     // Only run the sweep if the flag is set by the HTTP request.
     if (sweepRequested) {
@@ -91,5 +98,8 @@ void loop() {
         Serial.println(freeHeap);
 
         Serial.println("Sweep cycle complete. Waiting for next sweep request...");
+
+        // Update time of last sweep
+        lastSweepTime = millis();
     }
 }

@@ -71,8 +71,8 @@ def upload():
     current_concentration = (top_current_microamps - line1_intercept) / line1_slope
     print(f"Calculated metal concentration: {current_concentration}")
 
-    # Use the time value corresponding to the max current measurement.
-    measurement_time = time_values[max_index]
+    # Use the current system time in HH:MM:SS format.
+    measurement_time = datetime.now().strftime("%H:%M:%S")
     # Append new data to the history arrays
     concentration_history.append(current_concentration)
     time_history.append(measurement_time)
