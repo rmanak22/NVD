@@ -204,15 +204,8 @@
     <!-- Cards Container (Dropdown + Service Info) -->
     <div class="cards-container">
       <div class="info-card">
-        <h3>Metal to Detect</h3>
-        <label for="metalSelect" style="font-weight: bold;">Select Metal:</label>
-        <select id="metalSelect" style="margin-left: 0.5rem;">
-          <option value="copper" selected>Copper</option>
-          <option value="lead">Lead</option>
-          <option value="arsenic">Arsenic</option>
-          <option value="iron">Iron</option>
-          <option value="cadmium">Cadmium</option>
-        </select>
+        <h3>Metal to Detected</h3>
+        <p style="font-weight: bold;">Copper Detected In Water</p>
       </div>
       <div class="info-card">
         <h3>When to Service</h3>
@@ -260,7 +253,7 @@
       data: {
         labels: timeHistory,
         datasets: [{
-          label: 'Concentration (mg/L)',
+          label: 'Concentration (ug/L)',
           data: concentrationHistory,
           borderColor: '#00d4ff',
           backgroundColor: 'rgba(0,212,255,0.2)',

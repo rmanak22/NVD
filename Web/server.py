@@ -16,8 +16,8 @@ latest_voltage = []              # Voltage data from the latest CSV message
 latest_current = []              # Current data (in µA) from the latest CSV message
 
 # Interpolation line parameters
-line1_slope = 10.268
-line1_intercept = 1.1028
+line1_slope = 0.03
+line1_intercept = 1.0
 
 # Serve the website (index.html must be in the "templates" folder)
 @app.route('/')
@@ -65,6 +65,11 @@ def upload():
     # Calculate the metal concentration using:
     # y (µA) = slope * concentration + intercept  =>  concentration = (y - intercept) / slope
     current_concentration = (top_current - line1_intercept) / line1_slope
+    # Apply bounds: below 300 becomes 0; above 10,000 is capped at 10,000
+    if current_concentration < 300:
+        current_concentration = 0
+    elif current_concentration > 10000:
+        current_concentration = 10000
     print(f"Calculated metal concentration: {current_concentration}")
 
     # Use the current system time in HH:MM:SS format for logging
