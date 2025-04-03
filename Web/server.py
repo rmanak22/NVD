@@ -66,7 +66,7 @@ def upload():
     # y (µA) = slope * concentration + intercept  =>  concentration = (y - intercept) / slope
     current_concentration = (top_current - line1_intercept) / line1_slope
     # Apply bounds: below 300 becomes 0; above 10,000 is capped at 10,000
-    if current_concentration < 300:
+    if current_concentration < 10:
         current_concentration = 0
     elif current_concentration > 10000:
         current_concentration = 10000

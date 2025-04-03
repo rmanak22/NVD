@@ -36,14 +36,14 @@ void loop() {
     // Process any incoming HTTP requests.
     server.handleClient();
     static unsigned long lastSweepTime = 0U;
-    static const unsigned long sweepInterval = 3500U;
+    static const unsigned long sweepInterval = 1U;
 
-    // Set sweepRequested every 10 seconds without blocking.
+    // Set sweepRequested every sweepInterval without blocking.
     if (millis() - lastSweepTime >= sweepInterval) {
         sweepRequested = true;
     }
 
-    // Only run the sweep if the flag is set by the HTTP request.
+    // Only run the sweep if the flag is set.
     if (sweepRequested) {
         // Reset the flag.
         sweepRequested = false;
@@ -84,12 +84,31 @@ void loop() {
         Serial.println("\nData sent over Serial.");
 
         // --- Step 5: Optionally, Send Data Over HTTP ---
-        Serial.println("Sending CSV data to backend...");
-        const char* backendURL = "http://metallyze-server.local:80/upload";
-        if (sendCSVData(backendURL)) {
-            Serial.println("CSV data sent successfully.");
-        } else {
-            Serial.println("Failed to send CSV data.");
+        const char* backendURLs[] = {
+            // "http://metallyze-server.local:80/upload",
+            "http://192.168.4.2:80/upload",
+            "http://192.168.4.3:80/upload",
+            "http://192.168.4.4:80/upload",
+            "http://192.168.4.5:80/upload",
+            "http://192.168.4.6:80/upload",
+            "http://192.168.4.7:80/upload",
+            // "http://192.168.4.8:80/upload",
+            // "http://192.168.4.9:80/upload",
+            // "http://192.168.4.10:80/upload",
+            // "http://192.168.4.11:80/upload",
+            // "http://192.168.4.12:80/upload",
+            // "http://192.168.4.13:80/upload",
+            // "http://192.168.4.14:80/upload"
+        };
+        const int numBackends = sizeof(backendURLs) / sizeof(backendURLs[0]);
+
+        for (int i = 0; i < numBackends; i++) {
+            Serial.println("Sending CSV data to backend...");
+            if (sendCSVData(backendURLs[i])) {
+                Serial.println("CSV data sent successfully.");
+            } else {
+                Serial.println("Failed to send CSV data.");
+            }
         }
 
         // --- Step 6: Log Memory Usage ---
@@ -99,7 +118,7 @@ void loop() {
 
         Serial.println("Sweep cycle complete. Waiting for next sweep request...");
 
-        // Update time of last sweep
+        // Update time of last sweep.
         lastSweepTime = millis();
     }
 }
