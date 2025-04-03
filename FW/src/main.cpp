@@ -85,7 +85,7 @@ void loop() {
 
         // --- Step 5: Optionally, Send Data Over HTTP ---
         Serial.println("Sending CSV data to backend...");
-        const char* backendURL = "http://192.168.4.2:80/upload";  // Change to your computer's IP
+        const char* backendURL = "http://metallyze-server.local:80/upload";
         if (sendCSVData(backendURL)) {
             Serial.println("CSV data sent successfully.");
         } else {
